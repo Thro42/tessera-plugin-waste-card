@@ -1,0 +1,59 @@
+# Beispiel für ein HA-Package. Nur nach Prüfung selbst installieren; nichts wird automatisch geändert.
+# Kalender-ID, Suchzeitraum und Zuordnung der Titel unten anpassen.
+template:
+  - triggers:
+      - trigger: time_pattern
+        minutes: 0
+      - trigger: homeassistant
+        event: start
+    actions:
+      - action: calendar.get_events
+        target:
+          entity_id: calendar.abfallkalender
+        data:
+          duration:
+            days: 30
+        response_variable: waste_calendar_response
+      - variables:
+          waste_result: >-
+            {% set events = waste_calendar_response.get('calendar.abfallkalender', {}).get('events', []) %}
+            {% set names = {
+              'rest': ['Restmüll 4-Wo'],
+              'paper': ['Papier'],
+              'bio': ['Biomüll'],
+              'plastic': ['Gelber Sack/Gelbe Tonne']
+            } %}
+            {% set ns = namespace(day='', rest=false, paper=false, bio=false, plastic=false) %}
+            {% for event in events %}
+              {% set day = (event.start | string)[:10] %}
+              {% set title = (event.summary | default('', true) | string | lower | trim) %}
+              {% set matches = namespace(kinds=[]) %}
+              {% for kind, labels in names.items() %}
+                {% for label in labels %}
+                  {% if title == label | lower | trim %}
+                    {% set matches.kinds = matches.kinds + [kind] %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+              {% if matches.kinds and day >= now().date().isoformat() and (ns.day == '' or day <= ns.day) %}
+                {% if ns.day == '' or day < ns.day %}
+                  {% set ns.day = day %}
+                  {% set ns.rest = false %}{% set ns.paper = false %}{% set ns.bio = false %}{% set ns.plastic = false %}
+                {% endif %}
+                {% if 'rest' in matches.kinds %}{% set ns.rest = true %}{% endif %}
+                {% if 'paper' in matches.kinds %}{% set ns.paper = true %}{% endif %}
+                {% if 'bio' in matches.kinds %}{% set ns.bio = true %}{% endif %}
+                {% if 'plastic' in matches.kinds %}{% set ns.plastic = true %}{% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ {'day': ns.day, 'rest': ns.rest, 'paper': ns.paper, 'bio': ns.bio, 'plastic': ns.plastic} }}
+    sensor:
+      - name: Tessera Abfallkarte
+        unique_id: tessera_waste_card_next
+        state: "{{ 'ready' if waste_result.day else 'none' }}"
+        attributes:
+          collection_day: "{{ waste_result.day }}"
+          rest: "{{ waste_result.rest }}"
+          paper: "{{ waste_result.paper }}"
+          bio: "{{ waste_result.bio }}"
+          plastic: "{{ waste_result.plastic }}"

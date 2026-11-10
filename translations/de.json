@@ -1,0 +1,5 @@
+{
+  "_meta": {"name": "Deutsch"},
+  "screen": {"title": "Abfallkalender", "choose": "Sensor auswählen", "waiting": "Warte auf Daten", "none": "Kein Abholtermin", "invalid": "Ungültige Daten", "stale": "Daten veraltet"},
+  "app": {"name": "Abfallkarte", "summary": "Zeigt den nächsten Abholtag mit farbigen Tonnen.", "tile_name": "Abfallkalender", "tile_example": "Nächster Abholtermin"}
+}

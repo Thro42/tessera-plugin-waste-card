@@ -1,0 +1,15 @@
+tiles:
+  - tile: next
+    name: Abfallkalender
+    entity: sensor.tessera_abfallkalender
+  - tile: next
+    name: Ohne Termine
+    entity: sensor.tessera_abfall_leer
+    sizes: [2x1]
+states:
+  sensor.tessera_abfallkalender:
+    state: "2026-11-12|1111"
+    attributes: {}
+  sensor.tessera_abfall_leer:
+    state: none
+    attributes: {}

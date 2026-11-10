@@ -1,0 +1,23 @@
+id: waste_card
+version: 0.1.0
+api: "0.8"
+icon: recycle
+maintainer: Thro42
+license: MIT
+stage: beta
+topics: [home, calendar]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 8
+
+tiles:
+  - id: next
+    name: tile_name
+    icon: recycle
+    sizes: { min: 1x1, max: 2x2 }
+    memory: 1400
+    domains: [sensor]
+    attributes: [collection_day, rest, paper, bio, plastic]
+    example: tile_example
+    preview: { title: "{name}", value: "{state}" }

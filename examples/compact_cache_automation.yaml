@@ -1,0 +1,53 @@
+# Beispiel der bereits eingerichteten Automation. Nicht zusätzlich installieren,
+# solange die bestehende Automation denselben Cache aktualisiert.
+# Kalender-ID, Cache-ID und Namen für andere Installationen anpassen.
+alias: Tessera Abfallkalender aktualisieren
+triggers:
+  - trigger: homeassistant
+    event: start
+  - trigger: time_pattern
+    minutes: "0"
+actions:
+  - action: calendar.get_events
+    target:
+      entity_id: calendar.abfallkalender
+    data:
+      duration:
+        days: 30
+    response_variable: waste_events
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.tessera_abfallkalender_cache
+    data:
+      value: >-
+        {% set events = waste_events.get('calendar.abfallkalender', {}).get('events', []) %}
+        {% set names = {
+          'rest': ['Restmüll 4-Wo'],
+          'paper': ['Papier'],
+          'bio': ['Biomüll'],
+          'plastic': ['Gelber Sack/Gelbe Tonne']
+        } %}
+        {% set ns = namespace(day='', rest=false, paper=false, bio=false, plastic=false) %}
+        {% for event in events %}
+          {% set day = (event.start | string)[:10] %}
+          {% set title = (event.summary | default('', true) | string | lower | trim) %}
+          {% set matches = namespace(kinds=[]) %}
+          {% for kind, labels in names.items() %}
+            {% for label in labels %}
+              {% if title == label | lower | trim %}
+                {% set matches.kinds = matches.kinds + [kind] %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+          {% if matches.kinds and day >= now().date().isoformat() and (ns.day == '' or day <= ns.day) %}
+            {% if ns.day == '' or day < ns.day %}
+              {% set ns.day = day %}
+              {% set ns.rest = false %}{% set ns.paper = false %}{% set ns.bio = false %}{% set ns.plastic = false %}
+            {% endif %}
+            {% if 'rest' in matches.kinds %}{% set ns.rest = true %}{% endif %}
+            {% if 'paper' in matches.kinds %}{% set ns.paper = true %}{% endif %}
+            {% if 'bio' in matches.kinds %}{% set ns.bio = true %}{% endif %}
+            {% if 'plastic' in matches.kinds %}{% set ns.plastic = true %}{% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.day ~ '|' ~ ('1' if ns.rest else '0') ~ ('1' if ns.paper else '0') ~ ('1' if ns.bio else '0') ~ ('1' if ns.plastic else '0') if ns.day else 'none' }}
