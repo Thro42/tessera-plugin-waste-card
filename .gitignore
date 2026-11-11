@@ -70,4 +70,5 @@ __pycache__/
 *.pyc
 .preview/
 # Konzept
-konzept/
+konzept/prompt.txt
+konzept/flows.json

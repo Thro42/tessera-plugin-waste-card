@@ -30,6 +30,31 @@ int main() {
   auto *tile = plugin.factory();
   lv_obj_t parent;
   tile->create({&parent, 240, 120});
+  // Stub's local calendar date is 2026-11-10: test all warning boundaries,
+  // theme changes and resetting colours for unavailable / expired data.
+  for (const auto &s : {"2026-11-15|1000", "2026-12-31|1000"}) {
+    tile->on_state(state_text(s)); tile->on_tick(1);
+    assert(objects[1]->color == esphome::tessera::ui::color(theme::INK));
+  }
+  for (const auto &s : {"2026-11-14|1000", "2026-11-13|1000", "2026-11-12|1000"}) {
+    tile->on_state(state_text(s)); tile->on_tick(1);
+    assert(objects[1]->color == lv_palette_darken(LV_PALETTE_AMBER, 4));
+    theme::dark = true; tile->on_theme();
+    assert(objects[1]->color == LV_PALETTE_YELLOW);
+    theme::dark = false; tile->on_theme();
+    assert(objects[1]->color == lv_palette_darken(LV_PALETTE_AMBER, 4));
+  }
+  for (const auto &s : {"2026-11-11|1000", "2026-11-10|1000"}) {
+    tile->on_state(state_text(s)); tile->on_tick(1);
+    assert(objects[1]->color == LV_PALETTE_RED);
+    tile->on_theme(); assert(objects[1]->color == LV_PALETTE_RED);
+  }
+  tile->on_state(state_text("none")); tile->on_tick(1);
+  assert(objects[1]->color == esphome::tessera::ui::color(theme::INK));
+  tile->on_state(state_text("2026-11-09|1000")); tile->on_tick(1);
+  assert(objects[1]->text == "stale" && objects[1]->color == esphome::tessera::ui::color(theme::INK));
+  tile->on_state(state_text("2026-11-11|1000")); tile->on_tick(0);
+  assert(objects[1]->color == esphome::tessera::ui::color(theme::INK));
   // Both producer formats must render all 15 nonempty bit combinations identically.
   for (unsigned mask = 1; mask < 16; ++mask) {
     std::string bits;

@@ -1,5 +1,5 @@
 {
   "_meta": {"name": "English"},
   "screen": {"title": "Waste calendar", "choose": "Choose a sensor", "waiting": "Waiting for data", "none": "No collection found", "invalid": "Invalid data", "stale": "Data out of date"},
-  "app": {"name": "Waste card", "summary": "Shows the next waste collection day and its coloured bins.", "tile_name": "Waste calendar", "tile_example": "Next collection"}
+  "app": {"name": "Abfallkalender Card", "summary": "Shows the next waste collection day and its coloured bins.", "tile_name": "Waste calendar", "tile_example": "Next collection"}
 }

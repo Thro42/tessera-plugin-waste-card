@@ -1,11 +1,22 @@
-# Tessera Abfallkarte
+# Abfallkalender Card
 
 Zeigt den nächsten passenden Abholtag und alle zugehörigen Tonnen: Restmüll **pink**, Papier **blau**, Bio **grün**, Plastik **gelb**. Die Darstellung orientiert sich an `konzept/beispiel.jpg`. Das Plugin liest einen beliebig wählbaren Sensor; es schreibt keine HA-Entity und benötigt keine HA-Aktionsrechte.
+
+## Datumsfarben
+
+- Mehr als vier Tage bis zur Abholung: normale Schriftfarbe.
+- Vier bis zwei Kalendertage vorher: **gelb** (auf hellem Hintergrund für besseren Kontrast dunkleres Gelb/Amber).
+- Am Vortag und am Abholtag: **rot**.
+- Ist das Datum veraltet oder die Bildschirmuhr noch nicht synchronisiert, wird keine Warnfarbe gezeigt. Die Berechnung verwendet das lokale Kalenderdatum des Displays; ein HA-Neustart oder eine zusätzliche Automation ist dafür nicht nötig.
+
+## Beteiligung einer KI
+
+Bei der Konzeption, Implementierung, Dokumentation und Prüfung dieses Plugins wurde ein KI-Assistent eingesetzt.
 
 ## Set up
 
 1. In dieser Installation ist `sensor.tessera_abfallkalender` bereits eingerichtet. Die Automation `automation.tessera_abfallkalender_aktualisieren` liest `calendar.abfallkalender` beim HA-Start und stündlich für die nächsten 30 Tage, schreibt `input_text.tessera_abfallkalender_cache`; der UI-Template-Helper spiegelt den Cache-Zustand. **Nichts erneut installieren.**
-2. Plugin im Tessera-App-Menü über einen GitHub-Link oder als lokales Testverzeichnis `/config/tessera-plugins/waste_card/` hinzufügen und den Bildschirm bauen. In Layout die Plugin-Kachel **Abfallkalender** platzieren und im Inspektor `sensor.tessera_abfallkalender` auswählen. Der lokale Ordner wird nicht automatisch erstellt.
+2. Plugin im Tessera-App-Menü über einen GitHub-Link oder als lokales Testverzeichnis `/config/tessera-plugins/waste_card/` hinzufügen und den Bildschirm bauen. In Layout die Plugin-Kachel **Abfallkalender Card** platzieren und im Inspektor `sensor.tessera_abfallkalender` auswählen. Der lokale Ordner wird nicht automatisch erstellt.
 3. Für andere Installationen stehen zwei alternative Producer-Beispiele bereit: `examples/compact_cache_automation.yaml` zeigt die Cache-Automation (benötigt einen Input-Text-Cache und einen Template-Sensor mit `{{ states('input_text.tessera_abfallkalender_cache') }}`); `examples/home_assistant_package.yaml` erzeugt stattdessen einen triggerbasierten Sensor mit Attributen. Kalender-ID, Ereignisnamen und bei Bedarf den Suchzeitraum anpassen. Die Beispiele werden nicht automatisch installiert; nicht beide für denselben Zweck zusätzlich aktivieren. Die Entity `sensor.kuchen_dashboard_nachstes_abfall_event` ist davon getrennt.
 
 ## Datenvertrag

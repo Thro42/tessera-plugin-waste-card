@@ -68,13 +68,20 @@ class NextTile : public tessera::Tile {
   void on_tick(uint32_t epoch) override {
     bool show = valid_;
     const char *status = status_;
+    date_color_ = DateColor::NORMAL;
     if (show && epoch) {
       const auto t = tessera::local_time(epoch);
-      if (civil_days(year_, month_, day_) < civil_days(t.year, t.month, t.day)) {
+      const int32_t days = civil_days(year_, month_, day_) - civil_days(t.year, t.month, t.day);
+      if (days < 0) {
         show = false;
         status = "stale";
+      } else if (days <= 1) {
+        date_color_ = DateColor::RED;
+      } else if (days <= 4) {
+        date_color_ = DateColor::YELLOW;
       }
     }
+    apply_date_color_();
     const std::string text = show ? date_label(year_, month_, day_) : plugin_->text(status);
     Font face = Font::HEADLINE;
     for (Font f : {Font::HEADLINE, Font::TITLE, Font::BODY_LARGE, Font::BODY}) {
@@ -115,7 +122,7 @@ class NextTile : public tessera::Tile {
   }
   void on_theme() override {
     ui::set_color(title_, theme::INK);
-    ui::set_color(date_, theme::INK);
+    apply_date_color_();
     // Pink and yellow are not Tessera mark roles. LVGL's named palette preserves
     // the user's required bin colours on both themes; text uses theme roles.
     const lv_color_t colours[] = {lv_palette_main(LV_PALETTE_PINK), ui::color(theme::MARK_BLUE),
@@ -128,6 +135,19 @@ class NextTile : public tessera::Tile {
     }
   }
  private:
+  enum class DateColor { NORMAL, YELLOW, RED };
+  void apply_date_color_() {
+    if (date_color_ == DateColor::NORMAL) {
+      ui::set_color(date_, theme::INK);
+    } else {
+      // A darker amber is readable on white; on dark cards a brighter yellow is used.
+      const auto color = date_color_ == DateColor::RED
+          ? lv_palette_main(LV_PALETTE_RED)
+          : (theme::dark ? lv_palette_main(LV_PALETTE_YELLOW) : lv_palette_darken(LV_PALETTE_AMBER, 4));
+      lv_obj_set_style_text_color(date_, color, 0);
+    }
+  }
+  DateColor date_color_ = DateColor::NORMAL;
   const tessera::Plugin *plugin_;
   int width_ = 0, height_ = 0, year_ = 0, month_ = 0, day_ = 0;
   bool active_[4] = {false, false, false, false}, valid_ = false;
